@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Practice Exam - 40 Questions</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, 'Kalpurush', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #1a73e8; margin-bottom: 10px; }
+        #timer { position: fixed; top: 15px; right: 15px; background: #d93025; color: white; padding: 10px 20px; border-radius: 25px; font-weight: bold; z-index: 1000; }
+        .student-info { display: flex; gap: 10px; margin-bottom: 25px; justify-content: center; }
+        .student-info input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 40%; }
+        .question { margin-bottom: 25px; padding: 15px; border: 1px solid #eee; border-radius: 10px; background: #fff; }
+        .question p { font-weight: bold; margin-bottom: 15px; }
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .option { padding: 12px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
+        .option:hover { background: #e8f0fe; }
+        input[type="radio"] { transform: scale(1.2); margin-right: 12px; }
+        
+        /* Result Styles */
+        #result-box { display: none; margin-top: 30px; border: 2px solid #1a73e8; padding: 25px; border-radius: 15px; background: #fff; }
+        .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-box { text-align: center; padding: 15px; border-radius: 10px; color: white; }
+        .bg-score { background: #1a73e8; }
+        .bg-correct { background: #28a745; }
+        .bg-wrong { background: #d93025; }
+        .bg-skip { background: #6c757d; }
+        
+        .analysis-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .analysis-table th, .analysis-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .analysis-table th { background: #1a73e8; color: white; }
+        .correct-row { background-color: #e6ffed; }
+        .wrong-row { background-color: #ffeef0; }
+        .skip-row { background-color: #f8f9fa; }
+
+        .btn { display: block; width: 100%; padding: 18px; border: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        #submit-btn { background: #1a73e8; color: white; }
+        .print-btn { background: #34a853; color: white; }
+
+        @media print {
+            #timer, #submit-btn, .print-btn, .student-info { display: none !important; }
+            body { padding: 0; }
+            .container { box-shadow: none; border: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="timer">সময় বাকি: 20:00</div>
+
+<div class="container">
+    <h1>GST B Unit: Article Mastery Exam</h1>
+    
+    <div class="student-info" id="info-form">
+        <input type="text" id="name-input" placeholder="ছাত্র/ছাত্রীর নাম">
+        <input type="text" id="id-input" placeholder="রোল/আইডি">
+    </div>
+
+    <form id="quizForm">
+        <div id="quiz-container"></div>
+        <button type="button" id="submit-btn" class="btn" onclick="calculateResult()">পরীক্ষা শেষ করুন</button>
+    </form>
+
+    <div id="result-box">
+        <h2 style="text-align:center; color:#1a73e8;">পরীক্ষার রেজাল্ট রিপোর্ট</h2>
+        <div style="margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:10px;">
+            <p><strong>নাম:</strong> <span id="res-name"></span></p>
+            <p><strong>রোল:</strong> <span id="res-id"></span></p>
+        </div>
+
+        <div class="dashboard">
+            <div class="stat-box bg-score"><small>মোট নম্বর</small><h2 id="total-val">0</h2></div>
+            <div class="stat-box bg-correct"><small>সঠিক</small><h2 id="correct-val">0</h2></div>
+            <div class="stat-box bg-wrong"><small>ভুল (-০.২৫)</small><h2 id="wrong-val">0</h2></div>
+            <div class="stat-box bg-skip"><small>স্কিপ</small><h2 id="skip-val">0</h2></div>
+        </div>
+
+        <button class="print-btn btn" onclick="window.print()">রিপোর্টটি PDF সেভ করুন</button>
+
+        <h3>প্রশ্নভিত্তিক বিশ্লেষণ (Teacher's Review):</h3>
+        <table class="analysis-table">
+            <thead>
+                <tr>
+                    <th>নং</th>
+                    <th>সঠিক উত্তর</th>
+                    <th>ছাত্রের উত্তর</th>
+                    <th>ফলাফল</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "He is ______ honest man.", options: ["a", "an", "the", "x"], ans: "an" },
+        { q: "I saw ______ one-eyed man.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "It was ______ unique opportunity.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "Gold is ______ precious metal.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "______ honesty of the boy is praiseworthy.", options: ["A", "An", "The", "x"], ans: "The" },
+        { q: "He is ______ M.B.B.S.", options: ["a", "an", "the", "x"], ans: "an" },
+        { q: "Twelve inches make ______ foot.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "______ rich are not always happy.", options: ["A", "An", "The", "x"], ans: "The" },
+        { q: "Iron is ______ useful metal.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "______ water of this pond is dirty.", options: ["A", "An", "The", "x"], ans: "The" },
+        { q: "He is ______ university student.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "This is ______ book I want.", options: ["a", "an", "the", "x"], ans: "the" },
+        { q: "He will come back in ______ hour.", options: ["a", "an", "the", "x"], ans: "an" },
+        { q: "My father is ______ L.L.B.", options: ["a", "an", "the", "x"], ans: "an" },
+        { q: "______ Quran is a holy book.", options: ["A", "An", "The", "x"], ans: "The" },
+        { q: "I saw ______ beggar in the street.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "Copper is ______ useful metal.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "He is ______ B.A.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "______ sun rises in the east.", options: ["A", "An", "The", "x"], ans: "The" },
+        { q: "I met him ______ year ago.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "He is ______ unlucky man.", options: ["a", "an", "the", "x"], ans: "an" },
+        { q: "He is ______ European.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "______ more you read, the more you learn.", options: ["A", "An", "The", "x"], ans: "The" },
+        { q: "He plays ______ flute well.", options: ["a", "an", "the", "x"], ans: "the" },
+        { q: "He is ______ best boy in the class.", options: ["a", "an", "the", "x"], ans: "the" },
+        { q: "English is ______ international language.", options: ["a", "an", "the", "x"], ans: "an" },
+        { q: "Dhaka is on ______ Buriganga.", options: ["a", "an", "the", "x"], ans: "the" },
+        { q: "Mr. Rahim is ______ honorary magistrate.", options: ["a", "an", "the", "x"], ans: "an" },
+        { q: "What ______ pity!", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "______ Padma is a big river.", options: ["A", "An", "The", "x"], ans: "The" },
+        { q: "He is ______ heir to the property.", options: ["a", "an", "the", "x"], ans: "an" },
+        { q: "I saw ______ owl in the tree.", options: ["a", "an", "the", "x"], ans: "an" },
+        { q: "This is ______ unique site.", options: ["a", "an", "the", "x"], ans: "a" },
+        { q: "Man is ______ mortal.", options: ["a", "an", "the", "x"], ans: "x" },
+        { q: "______ lion is the king of beasts.", options: ["A", "An", "The", "x"], ans: "The" },
+        { q: "Rice is ______ principal food of Bangladesh.", options: ["a", "an", "the", "x"], ans: "the" },
+        { q: "He is ______ F.R.C.S.", options: ["a", "an", "the", "x"], ans: "an" },
+        { q: "______ Himalayas are to the north of India.", options: ["A", "An", "The", "x"], ans: "The" },
+        { q: "They go to ______ school every day.", options: ["a", "an", "the", "x"], ans: "x" },
+        { q: "It is ______ half-past ten.", options: ["a", "an", "the", "x"], ans: "x" }
+    ];
+
+    const quizContainer = document.getElementById('quiz-container');
+    questions.forEach((item, i) => {
+        quizContainer.innerHTML += `
+            <div class="question">
+                <p>${i+1}. ${item.q}</p>
+                <div class="options">
+                    ${item.options.map(opt => `
+                        <label class="option"><input type="radio" name="q${i}" value="${opt}"> ${opt}</label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    });
+
+    let timeLeft = 20 * 60;
+    const timer = setInterval(() => {
+        let min = Math.floor(timeLeft / 60);
+        let sec = timeLeft % 60;
+        document.getElementById('timer').innerText = `সময় বাকি: ${min}:${sec < 10 ? '0' : ''}${sec}`;
+        if (timeLeft <= 0) { clearInterval(timer); calculateResult(); }
+        timeLeft--;
+    }, 1000);
+
+    function calculateResult() {
+        clearInterval(timer);
+        let correct = 0, wrong = 0, skip = 0;
+        let tableRows = "";
+
+        questions.forEach((item, i) => {
+            const sel = document.querySelector(`input[name="q${i}"]:checked`);
+            let studentAns = sel ? sel.value : "No Answer";
+            let status = "", rowClass = "";
+
+            if (!sel) { 
+                skip++; status = "Skipped"; rowClass = "skip-row"; 
+            } else if (sel.value === item.ans) { 
+                correct++; status = "Correct"; rowClass = "correct-row"; 
+            } else { 
+                wrong++; status = "Wrong"; rowClass = "wrong-row"; 
+            }
+            tableRows += `<tr class="${rowClass}"><td>${i+1}</td><td>${item.ans}</td><td>${studentAns}</td><td>${status}</td></tr>`;
+        });
+
+        const score = correct - (wrong * 0.25);
+
+        document.getElementById('res-name').innerText = document.getElementById('name-input').value || "Unknown Student";
+        document.getElementById('res-id').innerText = document.getElementById('id-input').value || "N/A";
+        document.getElementById('total-val').innerText = score.toFixed(2);
+        document.getElementById('correct-val').innerText = correct;
+        document.getElementById('wrong-val').innerText = wrong;
+        document.getElementById('skip-val').innerText = skip;
+        document.getElementById('table-body').innerHTML = tableRows;
+
+        document.getElementById('quizForm').style.display = "none";
+        document.getElementById('info-form').style.display = "none";
+        document.getElementById('timer').style.display = "none";
+        document.getElementById('result-box').style.display = "block";
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>
